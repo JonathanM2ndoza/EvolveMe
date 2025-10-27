@@ -1,0 +1,7 @@
+{
+  "name": "EvolveMe - AI Self-Improvement",
+  "description": "An AI-powered guide to help you improve your appearance and well-being. Get personalized advice, track your progress, and evolve into your best self. This app is inspired by Umax with new and enhanced features.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

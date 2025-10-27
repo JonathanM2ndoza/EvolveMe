@@ -1,0 +1,136 @@
+@if (showTerms()) {
+  <app-terms (close)="showTerms.set(false)" />
+}
+
+<div class="w-full max-w-md mx-auto bg-gray-800 rounded-2xl shadow-2xl p-8 space-y-6 text-center animate-fade-in relative">
+  
+  <!-- Language Switcher -->
+  @if (currentStep() === 1) {
+    <div class="absolute top-4 right-4">
+      <button (click)="languageService.toggleLanguage()" class="bg-gray-700 hover:bg-indigo-600 text-white font-semibold py-1 px-3 rounded-lg text-sm transition-colors">
+        {{ languageService.translate('onboarding.language') }}
+      </button>
+    </div>
+  }
+
+  <!-- Progress Bar -->
+  <div class="w-full bg-gray-700 rounded-full h-2.5">
+    <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500 ease-out" [style.width]="progressPercentage"></div>
+  </div>
+
+  <!-- Step 1: Welcome -->
+  @if (currentStep() === 1) {
+    <div class="animate-slide-up">
+      <h1 class="text-4xl font-bold text-white mb-2">{{ languageService.translate('onboarding.welcomeTitle') }}</h1>
+      <p class="text-gray-400 mb-6">{{ languageService.translate('onboarding.welcomeSubtitle') }}</p>
+      <button (click)="nextStep()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+        {{ languageService.translate('onboarding.getStarted') }}
+      </button>
+      <div class="mt-4">
+        <button (click)="showTerms.set(true)" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+          {{ languageService.translate('terms.trigger') }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Step 2: Age -->
+  @if (currentStep() === 2) {
+    <div class="animate-slide-up">
+      <h2 class="text-2xl font-semibold text-white mb-4">{{ languageService.translate('onboarding.ageTitle') }}</h2>
+      <input 
+        type="number" 
+        #ageInput
+        [value]="age()"
+        (input)="age.set(ageInput.valueAsNumber)"
+        [placeholder]="languageService.translate('onboarding.agePlaceholder')"
+        class="w-full bg-gray-700 border border-gray-600 text-white text-center text-lg rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+      />
+      <div class="flex gap-4 mt-4">
+        <button (click)="previousStep()" class="w-1/3 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+          {{ languageService.translate('onboarding.back') }}
+        </button>
+        <button (click)="nextStep()" [disabled]="!age() || age()! < 13" class="w-2/3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+          {{ languageService.translate('onboarding.continue') }}
+        </button>
+      </div>
+      <p class="text-xs text-gray-500 mt-2">{{ languageService.translate('onboarding.ageDisclaimer') }}</p>
+    </div>
+  }
+
+  <!-- Step 3: Gender -->
+  @if (currentStep() === 3) {
+    <div class="animate-slide-up">
+      <h2 class="text-2xl font-semibold text-white mb-4">{{ languageService.translate('onboarding.genderTitle') }}</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <button (click)="setGender('Male')" [class]="'font-semibold py-4 px-4 rounded-lg transition duration-300 ' + (gender() === 'Male' ? 'bg-indigo-600 text-white' : 'bg-gray-700 hover:bg-gray-600')">{{ languageService.translate('onboarding.genders.male') }}</button>
+        <button (click)="setGender('Female')" [class]="'font-semibold py-4 px-4 rounded-lg transition duration-300 ' + (gender() === 'Female' ? 'bg-indigo-600 text-white' : 'bg-gray-700 hover:bg-gray-600')">{{ languageService.translate('onboarding.genders.female') }}</button>
+        <button (click)="setGender('Other')" [class]="'font-semibold py-4 px-4 rounded-lg transition duration-300 ' + (gender() === 'Other' ? 'bg-indigo-600 text-white' : 'bg-gray-700 hover:bg-gray-600')">{{ languageService.translate('onboarding.genders.other') }}</button>
+      </div>
+       <div class="flex gap-4">
+        <button (click)="previousStep()" class="w-1/3 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+          {{ languageService.translate('onboarding.back') }}
+        </button>
+        <button (click)="nextStep()" [disabled]="!gender()" class="w-2/3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+          {{ languageService.translate('onboarding.continue') }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Step 4: Goal -->
+  @if (currentStep() === 4) {
+    <div class="animate-slide-up">
+      <h2 class="text-2xl font-semibold text-white mb-4">{{ languageService.translate('onboarding.goalTitle') }}</h2>
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        @for (g of goals; track g) {
+          <button (click)="setGoal(g)" [class]="'font-semibold py-4 px-4 rounded-lg transition duration-300 ' + (goal() === g ? 'bg-indigo-600 text-white' : 'bg-gray-700 hover:bg-gray-600')">
+            {{ languageService.translate('onboarding.goals.' + g) }}
+          </button>
+        }
+      </div>
+      <div class="flex gap-4">
+        <button (click)="previousStep()" class="w-1/3 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+          {{ languageService.translate('onboarding.back') }}
+        </button>
+        <button (click)="nextStep()" [disabled]="!goal()" class="w-2/3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+          {{ languageService.translate('onboarding.continue') }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Step 5: Initial Selfie -->
+  @if (currentStep() === 5) {
+    <div class="animate-slide-up w-full max-w-lg">
+      <h2 class="text-2xl font-bold text-white mb-2">{{ languageService.translate('onboarding.selfieTitle') }}</h2>
+      <p class="text-gray-400 mb-4">{{ languageService.translate('onboarding.selfieSubtitle') }}</p>
+      <app-selfie-analyzer (photoTaken)="handleOnboardingSelfie($event)" (close)="previousStep()" />
+    </div>
+  }
+
+  <!-- Step 6: Finalizing -->
+  @if (currentStep() === 6) {
+    <div class="animate-slide-up">
+      <h2 class="text-3xl font-bold text-white mb-2">{{ languageService.translate('onboarding.finalizeTitle') }}</h2>
+      <div class="flex justify-center items-center my-6">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-400"></div>
+      </div>
+      <p class="text-gray-400">{{ languageService.translate('onboarding.finalizeSubtitle') }}</p>
+    </div>
+  }
+
+</div>
+
+<style>
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+  .animate-slide-up { animation: slide-up 0.5s ease-out forwards; }
+</style>
