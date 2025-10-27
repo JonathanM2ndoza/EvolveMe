@@ -1,4 +1,22 @@
 export const es = {
+  // Authentication
+  auth: {
+    loginTitle: 'Inicia Sesión en EvolveMe',
+    signupTitle: 'Crea Tu Cuenta',
+    email: 'Correo Electrónico',
+    password: 'Contraseña',
+    loginButton: 'Iniciar Sesión',
+    signupButton: 'Crear Cuenta',
+    switchToSignup: '¿No tienes una cuenta? Regístrate',
+    switchToLogin: '¿Ya tienes una cuenta? Inicia Sesión',
+    inProgress: 'En progreso...',
+    error: {
+      'Email already registered.': 'Este correo ya está registrado. Por favor, inicia sesión.',
+      'Invalid email or password.': 'Correo o contraseña no válidos. Por favor, inténtalo de nuevo.',
+      'An unexpected error occurred.': 'Ocurrió un error inesperado. Por favor, inténtalo más tarde.'
+    }
+  },
+
   // Onboarding Component
   onboarding: {
     welcomeTitle: 'Bienvenido a EvolveMe',
@@ -36,7 +54,10 @@ export const es = {
     headerSubtitle: 'Bienvenido de nuevo, evolucionemos juntos.',
     scoreLabel: 'Puntaje Evolve',
     analyzeSelfie: 'Nueva Evaluación',
-    resetProfile: 'Reiniciar Perfil',
+    resetProfile: 'Reiniciar Progreso',
+    userMenu: 'Menú de Usuario',
+    signedInAs: 'Sesión iniciada como',
+    signOut: 'Cerrar Sesión',
     currentGoal: 'Tu Objetivo Actual:',
     changeGoal: 'Cambiar Objetivo',
     cancel: 'Cancelar',
@@ -59,10 +80,15 @@ export const es = {
     recommendations: 'Recomendaciones',
     aiTips: 'Consejos Personalizados de IA',
     disclaimer: 'Descargo de responsabilidad: Estos consejos son solo para fines informativos y no sustituyen el consejo médico profesional. Consulta siempre a un proveedor de atención médica calificado para cualquier inquietud médica.',
-    resetConfirmation: '¿Estás seguro de que quieres reiniciar tu perfil y empezar de nuevo?',
+    aiTipsError: 'Lo sentimos, no se pudieron obtener los consejos de IA en este momento. Por favor, inténtalo de nuevo más tarde.',
+    aiTipsRateLimitError: 'Demasiadas solicitudes. Por favor, espera un momento antes de intentarlo de nuevo.',
+    resetConfirmation: '¿Estás seguro de que quieres reiniciar todo tu progreso? Esto eliminará tu historial de selfies y tu puntaje.',
     deleteRecordTitle: 'Eliminar Registro',
     deleteConfirmation: '¿Estás seguro de que quieres eliminar este registro permanentemente? Esta acción no se puede deshacer.',
-    confirmDelete: 'Eliminar'
+    confirmDelete: 'Eliminar',
+    scoreInfoButton: '¿Cómo se calcula mi puntaje?',
+    scoreInfoTitle: 'Cómo Se Calcula Tu Puntaje',
+    scoreInfoContent: `Tu Puntaje Evolve es generado por nuestra IA avanzada, que analiza tu selfie basándose en varios factores relevantes para tu objetivo principal.\n\n- Cuidado de la Piel: La IA evalúa la claridad de la piel, la textura y los signos de una piel saludable.\n- Fitness: El análisis se centra en indicadores faciales de un estilo de vida saludable.\n- Estilo: La IA evalúa el aseo personal, la presentación y qué tan bien te sienta tu atuendo.\n- Confianza: La IA busca señales en tu expresión y postura que sugieran seguridad en ti mismo.\n\nEl puntaje es una herramienta para seguir tu progreso a lo largo del tiempo. No es un juicio, sino un punto de referencia para ayudarte en tu camino de superación personal.`
   },
 
   // Selfie Analyzer Component

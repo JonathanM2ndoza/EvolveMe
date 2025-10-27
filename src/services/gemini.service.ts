@@ -42,7 +42,7 @@ export class GeminiService {
       return text.split('\n').filter(line => line.length > 0).map(line => line.replace(/^\d+\.\s*/, ''));
     } catch (error) {
       console.error('Error generating advice from Gemini API:', error);
-      return ["There was an issue getting your personalized advice from the AI service. Please try again later."];
+      throw error;
     }
   }
 
@@ -94,7 +94,7 @@ export class GeminiService {
                 description: "A list of actionable recommendations for improvement."
               }
             },
-            required: ["score", "selfAssessment", "recommendations"]
+            propertyOrdering: ["score", "selfAssessment", "recommendations"]
           }
         }
       });

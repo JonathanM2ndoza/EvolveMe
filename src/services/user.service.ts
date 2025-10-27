@@ -1,61 +1,84 @@
-import { Injectable, signal, effect } from '@angular/core';
+import { Injectable, signal, effect, inject } from '@angular/core';
 import { UserProfile, Goal, SelfieRecord } from '../models/user.model';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  readonly userProfile = signal<UserProfile | null>(this.loadProfileFromStorage());
-  readonly score = signal<number>(this.loadScoreFromStorage());
-  readonly selfieHistory = signal<SelfieRecord[]>(this.loadSelfieHistoryFromStorage());
+  private authService = inject(AuthService);
+
+  readonly userProfile = signal<UserProfile | null>(null);
+  readonly score = signal<number>(0);
+  readonly selfieHistory = signal<SelfieRecord[]>([]);
 
   constructor() {
     effect(() => {
-      this.saveProfileToStorage(this.userProfile());
-      this.saveScoreToStorage(this.score());
-      this.saveSelfieHistoryToStorage(this.selfieHistory());
+      const currentUser = this.authService.currentUser();
+      if (currentUser) {
+        const email = currentUser.email;
+        this.userProfile.set(this.loadProfileFromStorage(email));
+        this.score.set(this.loadScoreFromStorage(email));
+        this.selfieHistory.set(this.loadSelfieHistoryFromStorage(email));
+      } else {
+        this.clearUserState();
+      }
+    });
+
+    effect(() => {
+      const currentUser = this.authService.currentUser();
+      if (currentUser) {
+        const email = currentUser.email;
+        this.saveProfileToStorage(email, this.userProfile());
+        this.saveScoreToStorage(email, this.score());
+        this.saveSelfieHistoryToStorage(email, this.selfieHistory());
+      }
     });
   }
 
-  private loadProfileFromStorage(): UserProfile | null {
+  private getKey(prefix: string, email: string): string {
+    return `${prefix}_${email}`;
+  }
+
+  private loadProfileFromStorage(email: string): UserProfile | null {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const storedProfile = localStorage.getItem('userProfile');
+      const storedProfile = localStorage.getItem(this.getKey('userProfile', email));
       return storedProfile ? JSON.parse(storedProfile) : null;
     }
     return null;
   }
 
-  private saveProfileToStorage(profile: UserProfile | null) {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('userProfile', JSON.stringify(profile));
+  private saveProfileToStorage(email: string, profile: UserProfile | null) {
+    if (typeof window !== 'undefined' && window.localStorage && this.authService.isAuthenticated()) {
+      localStorage.setItem(this.getKey('userProfile', email), JSON.stringify(profile));
     }
   }
   
-  private loadScoreFromStorage(): number {
+  private loadScoreFromStorage(email: string): number {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const storedScore = localStorage.getItem('userScore');
+      const storedScore = localStorage.getItem(this.getKey('userScore', email));
       return storedScore ? parseInt(storedScore, 10) : 0;
     }
     return 0;
   }
 
-  private saveScoreToStorage(score: number) {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('userScore', score.toString());
+  private saveScoreToStorage(email: string, score: number) {
+    if (typeof window !== 'undefined' && window.localStorage && this.authService.isAuthenticated()) {
+      localStorage.setItem(this.getKey('userScore', email), score.toString());
     }
   }
 
-  private loadSelfieHistoryFromStorage(): SelfieRecord[] {
+  private loadSelfieHistoryFromStorage(email: string): SelfieRecord[] {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const storedHistory = localStorage.getItem('selfieHistory');
+      const storedHistory = localStorage.getItem(this.getKey('selfieHistory', email));
       return storedHistory ? JSON.parse(storedHistory) : [];
     }
     return [];
   }
 
-  private saveSelfieHistoryToStorage(history: SelfieRecord[]) {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('selfieHistory', JSON.stringify(history));
+  private saveSelfieHistoryToStorage(email: string, history: SelfieRecord[]) {
+    if (typeof window !== 'undefined' && window.localStorage && this.authService.isAuthenticated()) {
+      localStorage.setItem(this.getKey('selfieHistory', email), JSON.stringify(history));
     }
   }
 
@@ -81,9 +104,6 @@ export class UserService {
   
   startNewAssessment() {
     this.userProfile.set(null);
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.removeItem('userProfile');
-    }
   }
   
   deleteSelfieRecord(date: string) {
@@ -91,7 +111,7 @@ export class UserService {
 
     const latestHistory = this.selfieHistory();
     if (latestHistory.length > 0) {
-        const latestRecord = latestHistory[0];
+        const latestRecord = latestHistory.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
         this.score.set(latestRecord.score);
         this.userProfile.set({
             age: latestRecord.age,
@@ -104,13 +124,19 @@ export class UserService {
   }
 
   resetUser() {
+    const currentUser = this.authService.currentUser();
+    if (currentUser) {
+        const email = currentUser.email;
+        localStorage.removeItem(this.getKey('userProfile', email));
+        localStorage.removeItem(this.getKey('userScore', email));
+        localStorage.removeItem(this.getKey('selfieHistory', email));
+    }
+    this.clearUserState();
+  }
+  
+  private clearUserState() {
     this.userProfile.set(null);
     this.score.set(0);
     this.selfieHistory.set([]);
-    if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.removeItem('userProfile');
-        localStorage.removeItem('userScore');
-        localStorage.removeItem('selfieHistory');
-    }
   }
 }

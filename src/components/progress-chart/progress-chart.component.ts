@@ -2,12 +2,10 @@ import { Component, ChangeDetectionStrategy, input, effect, ViewChild, ElementRe
 import { CommonModule } from '@angular/common';
 import { SelfieRecord } from '../../models/user.model';
 import { LanguageService } from '../../services/language.service';
-import { Chart, registerables } from 'chart.js/auto';
+import { Chart } from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
 import { enUS, es } from 'date-fns/locale';
 import { subDays } from 'date-fns';
-
-Chart.register(...registerables);
 
 type TimeFrame = 'day' | 'week' | 'month' | 'year';
 
