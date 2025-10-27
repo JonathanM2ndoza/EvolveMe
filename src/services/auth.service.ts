@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { IndexedDbService } from './indexed-db.service';
 
 export interface User {
   email: string;
@@ -13,21 +14,20 @@ interface StoredUser {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly USERS_STORAGE_KEY = 'evolveme_users';
   private readonly SESSION_KEY = 'evolveme_session';
+  private dbService = inject(IndexedDbService);
 
   readonly currentUser = signal<User | null>(this.getInitialUser());
   readonly isAuthenticated = computed(() => !!this.currentUser());
 
-  private getStoredUsers(): StoredUser[] {
-    if (typeof window === 'undefined' || !window.localStorage) return [];
-    const usersJson = localStorage.getItem(this.USERS_STORAGE_KEY);
-    return usersJson ? JSON.parse(usersJson) : [];
+  private getStoredUsers(): Promise<StoredUser[]> {
+    if (typeof window === 'undefined') return Promise.resolve([]);
+    return this.dbService.getAll<StoredUser>('users');
   }
 
-  private saveStoredUsers(users: StoredUser[]): void {
-    if (typeof window === 'undefined' || !window.localStorage) return;
-    localStorage.setItem(this.USERS_STORAGE_KEY, JSON.stringify(users));
+  private saveUser(user: StoredUser): Promise<IDBValidKey> {
+    if (typeof window === 'undefined') return Promise.reject(new Error('Window not defined'));
+    return this.dbService.set('users', user);
   }
 
   private getInitialUser(): User | null {
@@ -37,46 +37,46 @@ export class AuthService {
   }
   
   async signUp(email: string, password: string): Promise<User> {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => { // Simulate network latency
-        const users = this.getStoredUsers();
-        const normalizedEmail = email.toLowerCase();
-        if (users.some(u => u.email === normalizedEmail)) {
-          reject(new Error('Email already registered.'));
-          return;
-        }
-        // In a real app, you would send the password to a server to be securely hashed.
-        const passwordHash = `hashed_${password}`; 
-        users.push({ email: normalizedEmail, passwordHash });
-        this.saveStoredUsers(users);
-        
-        // Automatically log in the new user
-        const newUser = { email: normalizedEmail };
-        this.currentUser.set(newUser);
-        sessionStorage.setItem(this.SESSION_KEY, normalizedEmail);
-        resolve(newUser);
-      }, 500);
-    });
+    // Simulate network latency
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const users = await this.getStoredUsers();
+    const normalizedEmail = email.toLowerCase();
+    if (users.some(u => u.email === normalizedEmail)) {
+      throw new Error('Email already registered.');
+    }
+    // In a real app, you would send the password to a server to be securely hashed.
+    const passwordHash = `hashed_${password}`; 
+    await this.saveUser({ email: normalizedEmail, passwordHash });
+    
+    // Automatically log in the new user
+    const newUser = { email: normalizedEmail };
+    this.currentUser.set(newUser);
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      sessionStorage.setItem(this.SESSION_KEY, normalizedEmail);
+    }
+    return newUser;
   }
 
   async login(email: string, password: string): Promise<User> {
-     return new Promise((resolve, reject) => {
-        setTimeout(() => { // Simulate network latency
-            const users = this.getStoredUsers();
-            const normalizedEmail = email.toLowerCase();
-            const user = users.find(u => u.email === normalizedEmail);
-            const passwordHash = `hashed_${password}`;
-            
-            if (user && user.passwordHash === passwordHash) {
-                const loggedInUser = { email: user.email };
-                this.currentUser.set(loggedInUser);
-                sessionStorage.setItem(this.SESSION_KEY, loggedInUser.email);
-                resolve(loggedInUser);
-            } else {
-                reject(new Error('Invalid email or password.'));
-            }
-        }, 500);
-     });
+     // Simulate network latency
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const users = await this.getStoredUsers();
+    const normalizedEmail = email.toLowerCase();
+    const user = users.find(u => u.email === normalizedEmail);
+    const passwordHash = `hashed_${password}`;
+    
+    if (user && user.passwordHash === passwordHash) {
+        const loggedInUser = { email: user.email };
+        this.currentUser.set(loggedInUser);
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          sessionStorage.setItem(this.SESSION_KEY, loggedInUser.email);
+        }
+        return loggedInUser;
+    } else {
+        throw new Error('Invalid email or password.');
+    }
   }
 
   logout(): void {
